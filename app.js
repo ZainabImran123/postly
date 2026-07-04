@@ -1,70 +1,41 @@
+// import { createClient } from '@supabase/supabase-js'
+
+// Create a single supabase client for interacting with your database
 var supabase = window.supabase.createClient(
-  'https://urhksjbmmesfibcgeeal.supabase.co',
-  'sb_publishable__fqO70p_nvCHHAZgdK1jPQ_H3tn8jR3'
+  "https://urhksjbmmesfibcgeeal.supabase.co",
+  "sb_publishable__fqO70p_nvCHHAZgdK1jPQ_H3tn8jR3"
 );
 
 let edited = false;
 let idindex = null;
+let email;
+let userId;
 var cardBg;
-
-// ================= SEARCH POSTS =================
 
 async function searchPosts() {
 
   let searchInput = document.getElementById("searchInput").value;
-  let posts = document.getElementById("posts");
+console.log(searchInput);
 
   try {
 
     const { data, error } = await supabase
-      .from('Post app')
-      .select('*')
+      .from("Post app")
+      .select("*")
       .or(`title.ilike.%${searchInput}%,description.ilike.%${searchInput}%`);
 
-    if (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Database Error",
-        text: error.message
-      });
-      return;
-    }
-
+  
+    var posts = document.getElementById("posts");
     posts.innerHTML = "";
-
-    if (!data.length) {
-
-      posts.innerHTML = `
-        <div class="no-post-card">
-          <div class="empty-icon">📭</div>
-          <h2>No Posts Found</h2>
-          <p>There are no posts matching your search.</p>
-        </div>
-      `;
-
-      Swal.fire({
-        icon: "info",
-        title: "No Posts Found",
-        text: "There are no posts matching your search."
-      });
-
-      return;
-    }
 
     data.forEach(post => {
 
       posts.innerHTML += `
       <div class="card mb-2">
+        <div class="card-header">${post.id} ~Post</div>
 
-        <div class="card-header">
-          ${post.id} ~ Post
-        </div>
-
-        <div style="background-image:url(${post.bg_img})"
-        class="card-body">
-
+        <div style="background-image:url(${post.bg_img})" class="card-body">
           <figure>
-
             <blockquote class="blockquote">
               <p>${post.title}</p>
             </blockquote>
@@ -72,29 +43,21 @@ async function searchPosts() {
             <figcaption class="blockquote-footer">
               ${post.description}
             </figcaption>
-
           </figure>
-
         </div>
 
         <div class="ms-auto m-2">
-
           <button
-          onclick="editPost(event,${post.id},'${post.description}','${post.title}','${post.bg_img}')"
+          onclick="editPost(event,${post.id},'${post.description}','${post.title}','${post.bg_img}','${post.user_id}')"
           class="btn btn-success">
-
           Edit
-
           </button>
 
           <button
           onclick="deletePost(event,${post.id})"
           class="btn btn-danger">
-
           Delete
-
           </button>
-
         </div>
 
       </div>
@@ -102,59 +65,75 @@ async function searchPosts() {
 
     });
 
-  }
+    if (!data.length) {
+      // posts.innerHTML = "No posts Found";
+if (!data.length) {
+  posts.innerHTML = `
+    <div class="no-post-found">
+      <div class="search-icon">
+        🔍
+      </div>
 
-  catch (err) {
+      <h2>No Posts Found</h2>
+
+      <p>
+        Sorry! We couldn't find any posts matching your search.
+      </p>
+
+      <button class="search-again-btn" onclick="document.getElementById('searchInput').value=''; location.reload();">
+        Show All Posts
+      </button>
+    </div>
+  `;
+  return;
+}
+    }
+
+  } catch (error) {
 
     Swal.fire({
       icon: "error",
-      title: "Oops!",
-      text: err.message
+      title: "Oops...",
+      text: error.message
     });
 
   }
 
 }
 
-// ================= PAGE LOAD =================
+
 
 window.onload = async function () {
 
   try {
 
     const { data, error } = await supabase
-      .from('Post app')
+      .from("Post app")
       .select("*")
-      .order('id', { ascending: false });
+      .order("id", { ascending: false });
 
     if (error) {
-
       Swal.fire({
         icon: "error",
-        title: "Database Error",
+        title: "Loading Failed",
         text: error.message
       });
-
       return;
     }
 
-    let posts = document.getElementById("posts");
-
+    var posts = document.getElementById("posts");
     posts.innerHTML = "";
 
     data.forEach(post => {
 
       posts.innerHTML += `
-
       <div class="card mb-2">
 
         <div class="card-header">
-          ${post.id} ~ Post
+          ${post.id}: @${post.email}
         </div>
 
-        <div
-        style="background-image:url(${post.bg_img})"
-        class="card-body">
+        <div style="background-image:url(${post.bg_img})" class="card-body">
 
           <figure>
 
@@ -173,56 +152,108 @@ window.onload = async function () {
         <div class="ms-auto m-2">
 
           <button
-          onclick="editPost(event,${post.id},'${post.description}','${post.title}','${post.bg_img}')"
+          onclick="editPost(event,${post.id},'${post.description}','${post.title}','${post.bg_img}','${post.user_id}')"
           class="btn btn-success">
-
           Edit
-
           </button>
 
           <button
           onclick="deletePost(event,${post.id})"
           class="btn btn-danger">
-
           Delete
-
           </button>
 
         </div>
 
       </div>
-
       `;
 
     });
 
-  }
-
-  catch (err) {
+  } catch (error) {
 
     Swal.fire({
       icon: "error",
-      title: "Oops!",
-      text: err.message
+      title: "Oops...",
+      text: error.message
     });
 
   }
 
-}
+};
 
 
-// ================= DELETE POST =================
 
 async function deletePost(event, id) {
 
+  let postUserId;
+
+  try {
+
+    const { data: { user }, error: userError } =
+      await supabase.auth.getUser();
+
+    if (userError || !user) {
+
+      Swal.fire({
+        icon: "warning",
+        title: "Login Required",
+        text: "Please login first."
+      });
+
+      return;
+    }
+
+    userId = user.id;
+
+    const { data, error } = await supabase
+      .from("Post app")
+      .select("user_id")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message
+      });
+
+      return;
+    }
+
+    postUserId = data.user_id;
+
+    if (postUserId !== userId) {
+
+      Swal.fire({
+        icon: "error",
+        title: "Access Denied",
+        text: "This post doesn't belong to you."
+      });
+
+      return;
+    }
+
+  } catch (error) {
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message
+    });
+
+    return;
+  }
+
   const result = await Swal.fire({
     title: "Delete Post?",
-    text: "You won't be able to recover this post!",
+    text: "You won't be able to recover it!",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!"
+    confirmButtonText: "Yes, Delete",
+    cancelButtonText: "Cancel"
   });
 
   if (!result.isConfirmed) return;
@@ -230,45 +261,78 @@ async function deletePost(event, id) {
   try {
 
     const { error } = await supabase
-      .from('Post app')
+      .from("Post app")
       .delete()
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) {
+
       Swal.fire({
         icon: "error",
         title: "Delete Failed",
         text: error.message
       });
+
       return;
     }
+
+    Swal.fire({
+      icon: "success",
+      title: "Deleted Successfully"
+    });
 
     var card = event.target.parentNode.parentNode;
     card.remove();
 
-    Swal.fire({
-      icon: "success",
-      title: "Deleted!",
-      text: "Post deleted successfully.",
-      timer: 1500,
-      showConfirmButton: false
-    });
-
-  } catch (err) {
+  } catch (error) {
 
     Swal.fire({
       icon: "error",
-      title: "Oops!",
-      text: err.message
+      title: "Error",
+      text: error.message
     });
 
   }
 
 }
 
-// ================= EDIT POST =================
 
-function editPost(event, id, desc, title, bg_img) {
+async function editPost(event, id, desc, title, bg_img, post_id) {
+
+  try {
+
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      Swal.fire({
+        icon: "warning",
+        title: "Login Required",
+        text: "Please login first."
+      });
+      return;
+    }
+
+    userId = user.id;
+
+    if (post_id !== userId) {
+      Swal.fire({
+        icon: "error",
+        title: "Access Denied",
+        text: "You are not allowed to edit this post!"
+      });
+      return;
+    }
+
+  } catch (error) {
+
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: error.message
+    });
+
+    return;
+  }
 
   document.getElementById("title").value = title;
   document.getElementById("description").value = desc;
@@ -278,17 +342,139 @@ function editPost(event, id, desc, title, bg_img) {
   edited = true;
   idindex = id;
 
-  document.getElementById("postBtn").innerHTML = "Update Post";
+  let postBtn = document.getElementById("postBtn");
+  postBtn.innerHTML = "Update Post";
 }
 
-// ================= ADD / UPDATE POST =================
+
 
 async function post() {
 
   var title = document.getElementById("title");
   var description = document.getElementById("description");
 
-  if (!title.value.trim() || !description.value.trim()) {
+  if (title.value.trim() && description.value.trim()) {
+
+    try {
+
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error || !user) {
+        Swal.fire({
+          icon: "warning",
+          title: "Login Required",
+          text: "Please login first."
+        });
+        return;
+      }
+
+      email = user.email;
+      userId = user.id;
+
+    } catch (error) {
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message
+      });
+
+      return;
+    }
+
+    if (edited) {
+
+      try {
+
+        const { error } = await supabase
+          .from("Post app")
+          .update({
+            title: title.value,
+            description: description.value,
+            bg_img: cardBg
+          })
+          .eq("id", idindex);
+
+        if (error) {
+
+          Swal.fire({
+            icon: "error",
+            title: "Update Failed",
+            text: error.message
+          });
+
+          return;
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Post Updated Successfully"
+        });
+
+        edited = false;
+        idindex = null;
+
+        document.getElementById("postBtn").innerHTML = "Post";
+
+      } catch (error) {
+
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.message
+        });
+
+        return;
+      }
+
+    } else {
+
+      try {
+
+        const { error } = await supabase
+          .from("Post app")
+          .insert({
+            title: title.value,
+            description: description.value,
+            bg_img: cardBg,
+            email: email,
+            user_id: userId
+          });
+
+        if (error) {
+
+          Swal.fire({
+            icon: "error",
+            title: "Post Failed",
+            text: error.message
+          });
+
+          return;
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Post Created Successfully"
+        });
+
+      } catch (error) {
+
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.message
+        });
+
+        return;
+      }
+
+    }
+
+    setTimeout(() => {
+      location.reload();
+    }, 1000);
+
+  } else {
 
     Swal.fire({
       icon: "error",
@@ -296,93 +482,14 @@ async function post() {
       text: "Title & Description can't be empty!"
     });
 
-    return;
   }
 
-  try {
-
-    if (edited) {
-
-      const { error } = await supabase
-        .from('Post app')
-        .update({
-          title: title.value,
-          description: description.value,
-          bg_img: cardBg
-        })
-        .eq('id', idindex);
-
-      if (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Update Failed",
-          text: error.message
-        });
-        return;
-      }
-
-      edited = false;
-      idindex = null;
-
-      document.getElementById("postBtn").innerHTML = "Post";
-
-      await Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Post updated successfully.",
-        timer: 1500,
-        showConfirmButton: false
-      });
-
-    } else {
-
-      const { error } = await supabase
-        .from('Post app')
-        .insert({
-          title: title.value,
-          description: description.value,
-          bg_img: cardBg
-        });
-
-      if (error) {
-
-        Swal.fire({
-          icon: "error",
-          title: "Post Failed",
-          text: error.message
-        });
-
-        return;
-      }
-
-      await Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: "Post added successfully.",
-        timer: 1500,
-        showConfirmButton: false
-      });
-
-    }
-
-    title.value = "";
-    description.value = "";
-
-    location.reload();
-
-  } catch (err) {
-
-    Swal.fire({
-      icon: "error",
-      title: "Oops!",
-      text: err.message
-    });
-
-  }
+  title.value = "";
+  description.value = "";
 
 }
 
-// ================= SELECT IMAGE =================
+
 
 function selectImg(src) {
 

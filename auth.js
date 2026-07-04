@@ -1,132 +1,100 @@
-var supabase = window.supabase.createClient(
-  'https://urhksjbmmesfibcgeeal.supabase.co',
-  'sb_publishable__fqO70p_nvCHHAZgdK1jPQ_H3tn8jR3'
-);
+var supabase = window.supabase.createClient("https://urhksjbmmesfibcgeeal.supabase.co","sb_publishable__fqO70p_nvCHHAZgdK1jPQ_H3tn8jR3");
 
-console.log(supabase);
+let InSignUpState = false;
 
-async function register() {
+const nameRow = document.getElementById("nameRow");
+const fullnameInput = document.getElementById("fullname");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const submitBtn = document.getElementById("submitBtn");
+const toggleText = document.getElementById("toggleText");
+const toggleBtn = document.getElementById("toggleBtn");
+
+toggleBtn.addEventListener('click', () => {
+    InSignUpState = !InSignUpState;
+    if (InSignUpState) {
+        nameRow.style.display = "block";
+        submitBtn.innerText = "Create Account";
+        toggleText.innerText = "Already have an account?";
+        toggleBtn.innerText = "Log In";
+    } else {
+        nameRow.style.display = "none";
+        submitBtn.innerText = "Log In";
+        toggleText.innerText = "Don't have an account?";
+        toggleBtn.innerText = "Create Account";
+        fullnameInput.value = "";
+    }
+});
+
+submitBtn.addEventListener('click', async (event) => {
     event.preventDefault();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const fullname = fullnameInput.value.trim();
 
-    var name = document.getElementById("name").value;
-    var email = document.getElementById("email").value;
-    var phone = document.getElementById("phone").value;
-    var password = document.getElementById("password").value;
-    var cpassword = document.getElementById("cpassword").value;
-
-    if (!name) {
-        Swal.fire({
-            icon: "warning",
-            title: "Name Required",
-            text: "Please enter your name."
-        });
+    if (!email || !password) {
+        Swal.fire({ title: 'Error!', text: 'Please fill in all fields.', icon: 'error' });
         return;
     }
 
-    if (password !== cpassword) {
-        Swal.fire({
-            icon: "error",
-            title: "Password Mismatch",
-            text: "Passwords should be identical."
-        });
-        return;
-    }
-
-    try {
-        const { data, error } = await supabase.auth.signUp({
-            email: email,
-            password: password,
-        });
-
-        console.log(data);
-
-        if (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Registration Failed",
-                text: error.message
-            });
+    if (InSignUpState) {
+        if (!fullname) {
+            Swal.fire({ title: 'Error!', text: 'Full name is required to sign up.', icon: 'error' });
             return;
         }
 
-        await Swal.fire({
-            icon: "success",
-            title: "Success!",
-            text: `${name} Registered Successfully`,
-            timer: 2000,
-            showConfirmButton: false
-        });
-
-        window.location.href = "/dashboard.html";
-
-    } catch (error) {
-        console.log(error);
-
-        Swal.fire({
-            icon: "error",
-            title: "Oops!",
-            text: error.message
-        });
-    }
-}
-
-async function login() {
-    event.preventDefault();
-
-    var loginEmail = document.getElementById("loginEmail").value;
-    var loginPass = document.getElementById("loginPass").value;
-
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: loginEmail,
-            password: loginPass,
-        });
-
-        console.log(data);
-
-        if (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Login Failed",
-                text: error.message
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { display_name: fullname }
+                }
             });
-            return;
+
+            if (error) {
+                Swal.fire({ title: 'Signup Failed', text: error.message, icon: 'error' });
+                return;
+            } else {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Registered successfully!',
+                    icon: 'success'
+                });
+            }
+        } catch (error) {
+            console.log(error);
         }
 
-        await Swal.fire({
-            icon: "success",
-            title: "Login Successful",
-            text: "Welcome back!",
-            timer: 2000,
-            showConfirmButton: false
-        });
+    } else {
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-        window.location.href = "./dashboard.html";
+            if (error) {
+                Swal.fire({ title: 'Login Failed', text: error.message, icon: 'error' });
+                return;
+            } else {
+                const userName = data.user.user_metadata.display_name || "User";
 
-    } catch (error) {
-        console.log(error);
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userName', userName);
+                Swal.fire({
+                    title: 'Welcome!',
+                    text: 'Login successful!',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "/dashboard.html";
 
-        Swal.fire({
-            icon: "error",
-            title: "Oops!",
-            text: error.message
-        });
+                });
+
+            }
+        } catch (error) {
+            console.log(error);
+        }
     }
-}
-
-function logout() {
-
-    Swal.fire({
-        icon: "success",
-        title: "Logged Out",
-        text: "You have been logged out successfully.",
-        timer: 1500,
-        showConfirmButton: false
-    }).then(() => {
-        window.location.href = "/";
-    });
-
-}
-
-window.register = register;
-window.login = login;
+});
