@@ -13,13 +13,32 @@
 <body>
   <nav class="navbar">
     <div class="container-fluid">
-      <span class="navbar-brand mb-0 h1">Navbar</span>
+      <span class="navbar-brand mb-0 h1">POST APP</span>
   <div class="d-flex" role="search">
           <input class="form-control me-2" type="search" id="searchInput" placeholder="Search" aria-label="Search"/>
           <button class="btn btn-outline-light" type="submit" onclick="searchPosts()">Search</button>
-        </div>
+          <!-- <button id="char" class="btn btn-outline-light" type="button">Dummy</button> -->
+<div class="profile-dropdown">
+
+    <button id="char" class="btn btn-outline-light" onclick="toggleMenu()">
+        Z
+    </button>
+
+    <div id="dropdownMenu" class="dropdown-content">
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+
+</div>
+</div>
+  </div>
+
+</div>
     </div>
   </nav>
+
+
   <div class="container">
     <div class="row">
       <div class="col-sm-12 col-md-6 col-lg-4">
@@ -35,11 +54,11 @@
           </div>
 
           <div class="mb-3 d-flex images justify-content-around">
-            <img class="bgImg" onclick="selectImg('images/first.jpg')" src="images/first.jpg" alt="">
-            <img class="bgImg" onclick="selectImg('images/second.webp')" src="images/second.webp" alt="">
-            <img class="bgImg" onclick="selectImg('images/third.webp')" src="images/third.webp" alt="">
-            <img class="bgImg" onclick="selectImg('images/forth.jpg')" src="images/forth.jpg" alt="">
-            <img class="bgImg" onclick="selectImg('images/fifth.jpg')" src="images/fifth.jpg" alt="">
+            <img class="bgImg" onclick="selectImg('images/first.jpg',event)" src="images/first.jpg" alt="">
+            <img class="bgImg" onclick="selectImg('images/second.webp',event)" src="images/second.webp" alt="">
+            <img class="bgImg" onclick="selectImg('images/third.webp',event)" src="images/third.webp" alt="">
+            <img class="bgImg" onclick="selectImg('images/forth.jpg',event)" src="images/forth.jpg" alt="">
+            <img class="bgImg" onclick="selectImg('images/fifth.jpg',event)" src="images/fifth.jpg" alt="">
           </div>
 
           <button onclick="post()" type="submit" id="postBtn" class="btn btn-primary ms-auto">Post</button>

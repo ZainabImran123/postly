@@ -3,7 +3,7 @@ var supabase = window.supabase.createClient("https://urhksjbmmesfibcgeeal.supaba
 let InSignUpState = false;
 
 const nameRow = document.getElementById("nameRow");
-const fullnameInput = document.getElementById("fullname");
+const nameInput = document.getElementById("fullname");
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
 const submitBtn = document.getElementById("submitBtn");
@@ -30,7 +30,7 @@ submitBtn.addEventListener('click', async (event) => {
     event.preventDefault();
     const email = emailInput.value.trim();
     const password = passwordInput.value;
-    const fullname = fullnameInput.value.trim();
+    const fullname = nameInput.value.trim();
 
     if (!email || !password) {
         Swal.fire({ title: 'Error!', text: 'Please fill in all fields.', icon: 'error' });
@@ -38,17 +38,19 @@ submitBtn.addEventListener('click', async (event) => {
     }
 
     if (InSignUpState) {
-        if (!fullname) {
+        if (!nameInput.value.trim()) {
             Swal.fire({ title: 'Error!', text: 'Full name is required to sign up.', icon: 'error' });
             return;
         }
 
         try {
             const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
+                email : email,
+                password: password,
                 options: {
-                    data: { display_name: fullname }
+                    data: {
+                        first_name : fullname
+                    }
                 }
             });
 
