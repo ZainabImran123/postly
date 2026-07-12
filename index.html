@@ -15,6 +15,8 @@
 
     <div class="form-div">
         <form>
+          <label for="chk" aria-hidden="true">Login</label>
+        <button class="google" onclick="signUpWithGoogle()">Continue with Google</button>
             <div class="mb-2 name-row" id="nameRow" style="display: none;">
                 <input type="text" class="form-control" id="fullname" placeholder="full name">
             </div>
@@ -41,12 +43,14 @@
         </p>
     </div>
 
-    <script src="auth.js" type="module"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+        <script src="auth.js"></script>
 
 </body>
 

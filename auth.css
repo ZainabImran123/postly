@@ -15,7 +15,12 @@ body{
     align-items:center;
     background:linear-gradient(135deg,#eef7ff,#f8fbff,#ffffff);
 }
-
+.google{
+    margin-bottom: 15px;
+    margin-left: 80px;
+    border-radius: 2px;
+    border: none;
+}
 .d-flex{
     align-items:center;
     margin-bottom:25px;

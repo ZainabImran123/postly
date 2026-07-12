@@ -58,7 +58,9 @@
             <img class="bgImg" onclick="selectImg('images/second.webp',event)" src="images/second.webp" alt="">
             <img class="bgImg" onclick="selectImg('images/third.webp',event)" src="images/third.webp" alt="">
             <img class="bgImg" onclick="selectImg('images/forth.jpg',event)" src="images/forth.jpg" alt="">
-            <img class="bgImg" onclick="selectImg('images/fifth.jpg',event)" src="images/fifth.jpg" alt="">
+            <!-- <img class="bgImg" onclick="selectImg('images/fifth.jpg',event)" src="images/fifth.jpg" alt=""> -->
+            <label class="btn btn-dark" for="background-image">+</label>
+            <input type="file" id="background-image" class="d-none" accept="image/*">
           </div>
 
           <button onclick="post()" type="submit" id="postBtn" class="btn btn-primary ms-auto">Post</button>

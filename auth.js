@@ -100,3 +100,22 @@ submitBtn.addEventListener('click', async (event) => {
         }
     }
 });
+
+
+async function signUpWithGoogle(){
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'http://127.0.0.1:5500/dashboard.html'
+      }
+    })
+  } catch (error) {
+    console.log(error);
+  }
+}
+// window.signUpWithGoogle = signUpWithGoogle
+// window.register = register
+// window.login = login
+
+
