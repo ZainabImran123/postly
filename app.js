@@ -712,3 +712,17 @@ async function logout() {
 
     }
 }
+
+
+
+
+
+supabase
+  .channel('supabase-channel')
+  .on('postgres_changes', { event: '*', schema: '*', table: 'Post app' },async (payload) => {
+    console.log('Change received!', payload)
+  })
+  .subscribe((status) => {
+    console.log(status);
+    
+  })

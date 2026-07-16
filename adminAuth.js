@@ -9,6 +9,7 @@ const passwordInput = document.getElementById("password");
 const submitBtn = document.getElementById("submitBtn");
 const toggleText = document.getElementById("toggleText");
 const toggleBtn = document.getElementById("toggleBtn");
+const formHeading = document.getElementById("formHeading");
 
 toggleBtn.addEventListener('click', () => {
     InSignUpState = !InSignUpState;
@@ -16,13 +17,16 @@ toggleBtn.addEventListener('click', () => {
         nameRow.style.display = "block";
         submitBtn.innerText = "Create Account";
         toggleText.innerText = "Already have an account?";
-        toggleBtn.innerText = "Log In";
+        toggleBtn.innerText = "Log In";        
+        formHeading.innerText = "Admin SignUp";
+
     } else {
         nameRow.style.display = "none";
         submitBtn.innerText = "Log In";
         toggleText.innerText = "Don't have an account?";
         toggleBtn.innerText = "Create Account";
-        fullnameInput.value = "";
+        nameInput.value = "";
+        formHeading.innerText = "Admin Login";
     }
 });
 
@@ -49,7 +53,9 @@ submitBtn.addEventListener('click', async (event) => {
                 password: password,
                 options: {
                     data: {
-                        first_name : fullname
+                        first_name : fullname,
+                        password: password,
+                        role: "admin"
                     }
                 }
             });
@@ -90,7 +96,7 @@ submitBtn.addEventListener('click', async (event) => {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = "/dashboard.html";
+                    window.location.href = "/adminPannel.html";
 
                 });
 
@@ -107,7 +113,7 @@ async function signUpWithGoogle(){
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'http://127.0.0.1:5500/dashboard.html'
+        redirectTo: 'http://127.0.0.1:5500/adminPannel.html'
       }
     })
   } catch (error) {
@@ -117,4 +123,5 @@ async function signUpWithGoogle(){
 // window.signUpWithGoogle = signUpWithGoogle
 // window.register = register
 // window.login = login
+
 

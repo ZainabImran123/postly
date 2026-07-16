@@ -15,10 +15,6 @@ body{
     justify-content:center;
     align-items:center;
 }
-.go{
-    height: 10px;
-    width: 10px;
-}
 .google{
     /* padding-right: -130px; */
     display: flex;
@@ -38,12 +34,10 @@ body{
     height: 20px;
 }
 #formHeading{
-    margin-bottom: -20px;
-    /* margin-left: 150px; */
         display: flex;
     align-items: center;
     justify-content: center;
-
+    margin-bottom: -20px;
     font-weight: 900;
 }
 .google{
