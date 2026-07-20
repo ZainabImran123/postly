@@ -1,154 +1,235 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
+const SUPABASE_URL = "https://urhksjbmmesfibcgeeal.supabase.co";
+const SUPABASE_SERVICE_KEY =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyaGtzamJtbWVzZmliY2dlZWFsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTY4MDMwMiwiZXhwIjoyMDk3MjU2MzAyfQ.P22S0X5gBzrW2UPA3WH8lcg81hPk1ghhma9KUG9Gm7o";
+var supabaseAdmin = window.supabase.createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+var supabase = supabaseAdmin;
+
+async function checkAdmin() {
+const { data: { user }, error } = await supabase.auth.getUser();
+
+if (!user) {
+window.location.href = "/";
+return;
 }
 
-body {
-  background-color: #f4f7fc;
+if (user.user_metadata?.role !== "admin") {
+alert("Access Denied");
+window.location.href = "/postapp/dashboard.html";
+}
 }
 
-.container {
-  display: flex;
-  min-height: 100vh;
+checkAdmin();
+
+// 📊 Load Dashboard Stats
+async function loadStats() {
+// total posts
+const { data: posts } = await supabase.from("Post app").select("*");
+if (posts) {
+document.getElementById("totalPosts").innerText = posts.length;
 }
 
-/* Sidebar */
-
-.sidebar {
-  width: 250px;
-  background-color: #607D8B;
-  color: white;
-  padding: 25px;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+// total users
+if (typeof supabaseAdmin !== "undefined") {
+try {
+const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+if (error) throw error;
+document.getElementById("totalUsers").innerText = data.users.length;
+} catch (error) {
+console.error("Error fetching users:", error);
+}
+} else {
+console.warn("supabaseAdmin is not configured on the client.");
+}
 }
 
-.sidebar h2 {
-  text-align: center;
-  margin-bottom: 40px;
-  font-size: 28px;
+loadStats();
+
+// 🏠 Show Dashboard
+function showDashboard() {
+const mainContent = document.getElementById("mainContent");
+mainContent.innerHTML = `
+<h2>Posts</h2>
+<div id="posts"></div>
+`;
+loadPosts();
 }
 
-.sidebar ul {
-  list-style: none;
+// 📄 Load All Posts
+async function loadPosts() {
+try {
+const { data, error } = await supabase
+.from("Post app")
+.select("*")
+.order("id", { ascending: false });
+
+const postsContainer = document.getElementById("posts");
+if (!postsContainer) return;
+postsContainer.innerHTML = "";
+
+if (error) {
+console.log("Error fetching posts:", error);
+return;
 }
 
-.sidebar ul li {
-  padding: 15px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  background-color: #334155;
-  cursor: pointer;
-  transition: 0.3s;
-  font-size: 17px;
+if (!data || data.length === 0) {
+postsContainer.innerHTML = "<h4>No posts available</h4>";
+return;
 }
 
-.sidebar ul li:hover {
-  background-color: #2563eb;
-  transform: translateX(5px);
+data.forEach((post) => {
+postsContainer.innerHTML += `
+<div class="post card m-2 p-2">
+    <h3>${post.title}</h3>
+    <p>${post.description}</p>
+    ${post.img_url
+    ? `<img src="${post.img_url}" width="200" style="display:block; margin-bottom:10px;" />`
+    : ""
+    }
+    <button onclick="deletePost(${post.id})" class="btn btn-danger">Delete</button>
+</div>
+`;
+});
+} catch (err) {
+console.log("Unexpected error in loadPosts:", err);
+}
 }
 
-/* Main Section */
+loadPosts();
 
-.main {
-  flex: 1;
-  padding: 30px;
+// 🗑 Delete Post
+async function deletePost(id) {
+const { error } = await supabase.from("Post app").delete().eq("id", id);
+
+if (error) {
+console.log(error);
+alert("Error deleting post");
+} else {
+alert("Post Deleted");
+loadPosts();
+loadStats();
+}
 }
 
-.main h1 {
-  color: #1e293b;
-  margin-bottom: 25px;
+// 👤 View User Posts
+async function viewUserPosts(userId) {
+const mainContent = document.getElementById("mainContent");
+
+const { data, error } = await supabase
+.from("Post app")
+.select("*")
+.eq("user_id", userId);
+
+if (error) {
+console.log(error);
+return;
 }
 
-/* Dashboard Cards */
+mainContent.innerHTML = `<h2>User Posts</h2>`;
 
-.cards {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 30px;
+if (!data || data.length === 0) {
+mainContent.innerHTML += "<p>No posts found for this user.</p>";
+return;
 }
 
-.card {
-  background: white;
-  width: 250px;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-  transition: 0.3s;
+data.forEach((post) => {
+mainContent.innerHTML += `
+<div class="post-card">
+    <h3>${post.title}</h3>
+    <p>${post.description}</p>
+    ${post.img_url ? `<img src="${post.img_url}" width="200">` : ""}
+</div>
+`;
+});
 }
 
-.card:hover {
-  transform: translateY(-5px);
+// 👥 Load Users
+async function loadUsers() {
+const mainContent = document.getElementById("mainContent");
+
+mainContent.innerHTML = `
+<h2 class="page-title">Manage Users</h2>
+<table class="users-table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="usersTableBody"></tbody>
+</table>
+`;
+
+if (typeof supabaseAdmin === "undefined") {
+console.warn("Admin management requires Supabase Edge Functions or Backend Endpoint.");
+return;
 }
 
-.card h3 {
-  color: #64748b;
-  margin-bottom: 15px;
+try {
+const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+if (error) throw error;
+
+const tbody = document.getElementById("usersTableBody");
+
+data.users.forEach((user, index) => {
+tbody.innerHTML += `
+<tr>
+    <td>${index + 1}</td>
+    <td>${user.name || "-"}</td>
+    <td>${user.email}</td>
+    <td>${user.phone || "-"}</td>
+    <td class="action-buttons">
+        <button onclick="viewUserPosts('${user.id}')">Posts</button>
+        <button onclick="deleteUser('${user.id}')">Delete</button>
+    </td>
+</tr>
+`;
+});
+} catch (error) {
+console.error("Error fetching users:", error);
+}
 }
 
-.card p {
-  font-size: 36px;
-  font-weight: bold;
-  color: #2563eb;
+// ❌ Delete User
+async function deleteUser(userId) {
+if (!confirm("Are you sure you want to delete this user? This will also delete all their posts!")) {
+return;
 }
 
-/* Main Content */
+try {
+await supabase.from("Post app").delete().eq("user_id", userId);
 
-#mainContent {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+if (typeof supabaseAdmin !== "undefined") {
+const { data, error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+if (error) {
+alert("Error deleting user: " + error.message);
+return;
+}
+alert("User deleted successfully!");
 }
 
-#mainContent h2 {
-  margin-bottom: 20px;
-  color: #1e293b;
+await loadUsers();
+await loadStats();
+} catch (error) {
+console.error("Unexpected error:", error);
+}
 }
 
-/* Posts */
-
-#posts {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+// 🚪 Logout
+async function logout() {
+const { error } = await supabase.auth.signOut();
+if (!error) {
+window.location.href = "/postapp/admin.html";
+}
 }
 
-.post-card {
-  padding: 20px;
-  border-radius: 10px;
-  background: #f8fafc;
-  border-left: 5px solid #2563eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-}
-
-.post-card h4 {
-  margin-bottom: 8px;
-  color: #1e293b;
-}
-
-.post-card p {
-  color: #64748b;
-}
-
-/* Responsive */
-
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-  }
-
-  .cards {
-    justify-content: center;
-  }
-
-  .card {
-    width: 100%;
-  }
-}
+// 🌐 Export functions to Window Object for HTML inline click handlers
+window.showDashboard = showDashboard;
+window.loadPosts = loadPosts;
+window.loadUsers = loadUsers;
+window.viewUserPosts = viewUserPosts;
+window.deletePost = deletePost;
+window.deleteUser = deleteUser;
+window.logout = logout;

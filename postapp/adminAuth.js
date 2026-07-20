@@ -1,4 +1,4 @@
-var supabase = window.supabase.createClient("https://urhksjbmmesfibcgeeal.supabase.co","sb_publishable__fqO70p_nvCHHAZgdK1jPQ_H3tn8jR3");
+var supabase = window.supabase.createClient("https://urhksjbmmesfibcgeeal.supabase.co", "sb_publishable__fqO70p_nvCHHAZgdK1jPQ_H3tn8jR3");
 
 let InSignUpState = false;
 
@@ -17,7 +17,7 @@ toggleBtn.addEventListener('click', () => {
         nameRow.style.display = "block";
         submitBtn.innerText = "Create Account";
         toggleText.innerText = "Already have an account?";
-        toggleBtn.innerText = "Log In";        
+        toggleBtn.innerText = "Log In";
         formHeading.innerText = "Admin SignUp";
 
     } else {
@@ -49,11 +49,11 @@ submitBtn.addEventListener('click', async (event) => {
 
         try {
             const { data, error } = await supabase.auth.signUp({
-                email : email,
+                email: email,
                 password: password,
                 options: {
                     data: {
-                        first_name : fullname,
+                        first_name: fullname,
                         password: password,
                         role: "admin"
                     }
@@ -96,7 +96,7 @@ submitBtn.addEventListener('click', async (event) => {
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = "/adminPannel.html";
+                    window.location.href = "/postapp/adminPannel.html";
 
                 });
 
@@ -108,17 +108,17 @@ submitBtn.addEventListener('click', async (event) => {
 });
 
 
-async function signUpWithGoogle(){
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'http://127.0.0.1:5500/adminPannel.html'
-      }
-    })
-  } catch (error) {
-    console.log(error);
-  }
+async function signUpWithGoogle() {
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: 'http://127.0.0.1:5500/adminPannel.html'
+            }
+        })
+    } catch (error) {
+        console.log(error);
+    }
 }
 // window.signUpWithGoogle = signUpWithGoogle
 // window.register = register
